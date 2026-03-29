@@ -723,7 +723,28 @@ function saveTxn(){
   if(!date||!desc||!cat||isNaN(amt)||amt<=0||isNaN(accId)){alert('Vui lòng điền đầy đủ thông tin.');return}
   const editId=document.getElementById('editTxnId').value;
   if(editId){const idx=state.transactions.findIndex(t=>t.id==editId);if(idx>-1)state.transactions[idx]={...state.transactions[idx],date,desc,cat,amt,accId}}
-  else state.transactions.push({id:state.nextId++,date,desc,cat,amt,accId});
+  else // 1. Cấu hình kết nối (Thay URL và Key của bạn vào đây)
+const supabaseUrl = 'https://xxx.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+// 2. Sửa đoạn lưu dữ liệu
+async function saveTransaction(date, desc, cat, amt, accId) {
+    const newTxn = { date, desc, cat, amt, accId };
+    
+    // Lưu lên Supabase
+    const { data, error } = await supabase
+        .from('transactions') // Tên bảng bạn tạo trên Supabase
+        .insert([newTxn]);
+
+    if (error) {
+        console.error("Lỗi lưu dữ liệu:", error);
+    } else {
+        // Sau khi lưu thành công, cập nhật lại giao diện
+        state.transactions.push({id: state.nextId++, ...newTxn});
+        renderAll_(); 
+    }
+};
   closeModals();
   refreshCurrent();
 }
